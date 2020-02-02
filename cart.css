@@ -156,6 +156,11 @@ button
 .cart__item
 {
   display: grid;
+  grid-template-columns: 2rem 7rem 3rem auto 1rem auto auto;
+  justify-content: space-between;
+  align-items: center;  
+  text-align: center;
+  padding: var(--base-padding);
   border: 2px dashed var(--color-gray-light);
   animation: .3s add-cart-item;
 }
