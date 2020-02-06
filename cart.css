@@ -186,6 +186,26 @@ button
   max-width: 28px;
 }
 
+:disabled
+{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cart__item__removed
+{
+  animation: .3s remove-cart-item;
+}
+
+@keyframes remove-cart-item
+{
+  to
+  {
+    margin-left: -200px;
+    margin-right: 200px;
+    opacity: 0;
+  }
+}
 
 
 

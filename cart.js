@@ -27,7 +27,7 @@ addToCartButtons.forEach(button => {
                 <h2 class="cart__item__name"> ${product.name} </h2>
                 <h3 class="cart__item__price"> ${product.price} </h3>
                 <h3 class="cart__item__quantity"> ${product.quantity} </h3>
-                <button class="btn btn--primary btn--small" data-action="DECREASE_QUANTITY"> &minus; </button>
+                <button class="btn btn--primary btn--small btn--danger" data-action="DECREASE_QUANTITY"> &minus; </button>
                 <button class="btn btn--primary btn--small" data-action="INCREASE_QUANTITY"> &plus; </button>
                 <button class="btn btn--danger btn--small" data-action="DELETE_PRODUCT"> &times; </button>
                 
@@ -36,6 +36,7 @@ addToCartButtons.forEach(button => {
 
             cart.push(product);
             button.innerText = 'Already in cart';
+            button.disabled = true;
 
             let cartItems = cartDom.querySelectorAll('.cart__item');
             
@@ -47,11 +48,70 @@ addToCartButtons.forEach(button => {
                         cart.forEach(item => {
                             if(item.name === product.name)
                             {
-                                //item.quantity = item.quantity++;
                                 cartItem.querySelector('.cart__item__quantity').innerText = ++item.quantity;
-                    // item.quantity++ esetén első kattintásra nem növeszik az érték mert ekkor
-                    // először megjelenik az érték, aztán növeli az értékét.
-                    // ++item.quantity esetén először növeli meg az értéket, aztán jelenik meg
+                                // item.quantity++ esetén első kattintásra nem növeszik az érték mert ekkor
+                                // először megjelenik az érték, aztán növeli az értékét.
+                                // ++item.quantity esetén először növeli meg az értéket, aztán jelenik meg
+                                cartItem.querySelector('[data-action="DECREASE_QUANTITY"]').classList.remove('btn--danger');
+                            }
+                        })
+                    })
+
+                    cartItem.querySelector('[data-action="DECREASE_QUANTITY"]')
+                    .addEventListener('click', () => {
+                        cart.forEach(item => {
+                            if(item.name === product.name)
+                            {
+                                if( item.quantity > 1 )
+                                {
+                                    cartItem.querySelector('.cart__item__quantity').innerText = --item.quantity;
+                                }
+                                else
+                                {
+                                    cartItem.classList.add('cart__item__removed');
+                                    setTimeout( () => cartItem.remove(), 250);
+                                    
+                                    // magában a cart tömmben viszont még mindig megmarad a termék
+                                    console.log(cart);
+                                    cart = cart.filter( cartItem => cartItem.name !== product.name);
+                                    console.log(cart);
+
+                                    // gomb visszaállítása disabled állapotról
+                                    button.innerText = 'Add to cart';
+                                    button.disabled = false;
+                                }
+
+                                if( item.quantity == 1 )
+                                {
+                                    cartItem.querySelector('[data-action="DECREASE_QUANTITY"]').classList.add('btn--danger');
+                                }
+                            }
+                        })
+                    })
+
+                    cartItem.querySelector('[data-action="DELETE_PRODUCT"]')
+                    .addEventListener('click', () => {
+                        cart.forEach(item => {
+                            if(item.name === product.name)
+                            {
+                                if( item.quantity > 1 )
+                                {
+                                    cartItem.querySelector('.cart__item__quantity').innerText = --item.quantity;
+                                }
+                                else
+                                {
+                                    cartItem.classList.add('cart__item__removed');
+                                    setTimeout( () => cartItem.remove(), 250);
+                                    
+                                    // magában a cart tömmben viszont még mindig megmarad a termék
+                                    console.log(cart);
+                                    cart = cart.filter( cartItem => cartItem.name !== product.name);
+                                    console.log(cart);
+
+                                    // gomb visszaállítása disabled állapotról
+                                    button.innerText = 'Add to cart';
+                                    button.disabled = false;
+                                }
                             }
                         })
                     })
