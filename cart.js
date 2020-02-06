@@ -1,6 +1,32 @@
 let addToCartButtons = document.querySelectorAll('[data-action=ADD_TO_CART]');
 let cartDom = document.querySelector('.cart');
-let cart = [];
+
+//let cart = [];
+// már a localstorage-ból jön a cart, a string-et vissza kell parse-olni tömbbé
+// üres tömb, ha nincs adat, különben null-t kapunk
+let cart = JSON.parse(localStorage.getItem('cart')) || []; 
+
+// a storage-ban megmaradnak az itemek újratöltés után, viszont a DOM megjelenítést is le kell kezelni
+// minden elemre, ami a storage tömbben van jöjjön létre a div
+
+// ha vannak itemek a tömbben, hozzáadjuk a dom-hoz ugyanúgy, mintha az Add to cart gombot használnánk
+if( cart.length > 0 )
+{
+    cart.forEach( (product) => {
+        cartDom.insertAdjacentHTML('beforeend',
+            `<div class="cart__item">
+                <img class="cart__item__image" src="${product.image}" alt="${product.name}">
+                <h2 class="cart__item__name"> ${product.name} </h2>
+                <h3 class="cart__item__price"> ${product.price} </h3>
+                <h3 class="cart__item__quantity"> ${product.quantity} </h3>
+                <button class="btn btn--primary btn--small btn--danger" data-action="DECREASE_QUANTITY"> &minus; </button>
+                <button class="btn btn--primary btn--small" data-action="INCREASE_QUANTITY"> &plus; </button>
+                <button class="btn btn--danger btn--small" data-action="DELETE_PRODUCT"> &times; </button>
+                
+            </div>`
+            );
+    })
+}
 
 // ES6
 addToCartButtons.forEach(button => {
@@ -35,6 +61,9 @@ addToCartButtons.forEach(button => {
             );
 
             cart.push(product);
+            // tömb átalakítása stringgé, a setItem csak string formátumot fogad el
+            localStorage.setItem('cart', JSON.stringify(cart));
+
             button.innerText = 'Already in cart';
             button.disabled = true;
 
@@ -53,6 +82,8 @@ addToCartButtons.forEach(button => {
                                 // először megjelenik az érték, aztán növeli az értékét.
                                 // ++item.quantity esetén először növeli meg az értéket, aztán jelenik meg
                                 cartItem.querySelector('[data-action="DECREASE_QUANTITY"]').classList.remove('btn--danger');
+                                // minden egyes változást is menteni kell a storage-ba
+                                localStorage.setItem('cart', JSON.stringify(cart));
                             }
                         })
                     })
@@ -65,6 +96,7 @@ addToCartButtons.forEach(button => {
                                 if( item.quantity > 1 )
                                 {
                                     cartItem.querySelector('.cart__item__quantity').innerText = --item.quantity;
+                                    localStorage.setItem('cart', JSON.stringify(cart));
                                 }
                                 else
                                 {
@@ -74,6 +106,7 @@ addToCartButtons.forEach(button => {
                                     // magában a cart tömmben viszont még mindig megmarad a termék
                                     console.log(cart);
                                     cart = cart.filter( cartItem => cartItem.name !== product.name);
+                                    localStorage.setItem('cart', JSON.stringify(cart));
                                     console.log(cart);
 
                                     // gomb visszaállítása disabled állapotról
@@ -106,6 +139,7 @@ addToCartButtons.forEach(button => {
                                     // magában a cart tömmben viszont még mindig megmarad a termék
                                     console.log(cart);
                                     cart = cart.filter( cartItem => cartItem.name !== product.name);
+                                    localStorage.setItem('cart', JSON.stringify(cart));
                                     console.log(cart);
 
                                     // gomb visszaállítása disabled állapotról
