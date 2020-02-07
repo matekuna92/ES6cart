@@ -21,7 +21,8 @@ if( cart.length > 0 )
                 <h2 class="cart__item__name"> ${product.name} </h2>
                 <h3 class="cart__item__price"> ${product.price} </h3>
                 <h3 class="cart__item__quantity"> ${product.quantity} </h3>
-                <button class="btn btn--primary btn--small btn--danger" data-action="DECREASE_QUANTITY"> &minus; </button>
+                <button class="btn btn--primary btn--small ${(product.quantity === 1 ? 'btn--danger' : '' )}" 
+                    data-action="DECREASE_QUANTITY"> &minus; </button>
                 <button class="btn btn--primary btn--small" data-action="INCREASE_QUANTITY"> &plus; </button>
                 <button class="btn btn--danger btn--small" data-action="DELETE_PRODUCT"> &times; </button>
                 
@@ -101,12 +102,6 @@ if( cart.length > 0 )
                             cart.forEach(item => {
                                 if(item.name === product.name)
                                 {
-                                    if( item.quantity > 1 )
-                                    {
-                                        cartItem.querySelector('.cart__item__quantity').innerText = --item.quantity;
-                                    }
-                                    else
-                                    {
                                         cartItem.classList.add('cart__item__removed');
                                         setTimeout( () => cartItem.remove(), 250);
                                         
@@ -119,7 +114,6 @@ if( cart.length > 0 )
                                         // gomb visszaállítása disabled állapotról
                                         button.innerText = 'Add to cart';
                                         button.disabled = false;
-                                    }
                                 }
                             })
                         })
