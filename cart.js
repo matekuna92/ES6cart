@@ -16,6 +16,7 @@ if( cart.length > 0 )
 {
     cart.forEach( (product) => {
         insertProductToDOM(product);
+        countCartTotal();
 
             // localstorage esetén is kezelni kell, ha már benne van a tömbben az item, legyen disabled a gomb
             // nem kell külön eventListenert létrehozni 
@@ -56,11 +57,14 @@ addToCartButtons.forEach(button => {
             cart.push(product);
             // tömb átalakítása stringgé, a setItem csak string formátumot fogad el
             localStorage.setItem('cart', JSON.stringify(cart));
+            countCartTotal();
 
             handleActionButtons(button, product);
         }
     });
 });
+
+//** console.log(document.querySelector('.cart-footer')); //null, amíg nincs termék a kosárban
 
 // mivel product-ra hivatkozunk a függvényen belül, át kell adni paraméterként
 function insertProductToDOM(product)
@@ -78,6 +82,8 @@ function insertProductToDOM(product)
                 
             </div>`
             );
+    
+    addCartFooter();
 }
 
 function handleActionButtons(button, product)
@@ -115,6 +121,7 @@ function increaseAction(product, cartItem)
             cartItem.querySelector('[data-action="DECREASE_QUANTITY"]').classList.remove('btn--danger');
             // minden egyes változást is menteni kell a storage-ba
             localStorage.setItem('cart', JSON.stringify(cart));
+            countCartTotal();
         }
     })
 }
@@ -128,6 +135,7 @@ function decreaseAction(product, cartItem, button)
             {
                 cartItem.querySelector('.cart__item__quantity').innerText = --item.quantity;
                 localStorage.setItem('cart', JSON.stringify(cart));
+                countCartTotal();
             }
             else
             {
@@ -142,25 +150,102 @@ function decreaseAction(product, cartItem, button)
     })
 }
 
-function deleteAction(product, cartItem, button)
+function deleteAction(product, cartItem, button) 
 {
-    cart.forEach(item => {
-        if(item.name === product.name)
-        {
-                cartItem.classList.add('cart__item__removed');
-                setTimeout( () => cartItem.remove(), 250);
-                
-                // magában a cart tömmben viszont még mindig megmarad a termék
-                console.log(cart);
-                cart = cart.filter( cartItem => cartItem.name !== product.name);
-                localStorage.setItem('cart', JSON.stringify(cart));
-                console.log(cart);
+    cartItem.classList.add('cart__item__removed');
+    setTimeout(() => cartItem.remove(), 250);
 
-                // gomb visszaállítása disabled állapotról
-                button.innerText = 'Add to cart';
-                button.disabled = false;
-        }
+    // magában a cart tömmben viszont még mindig megmarad a termék
+    console.log(cart);
+    cart = cart.filter(cartItem => cartItem.name !== product.name);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    countCartTotal();
+    console.log(cart);
+
+    // gomb visszaállítása disabled állapotról
+    button.innerText = 'Add to cart';
+    button.disabled = false;
+
+    // ha üres a kosár, a footer-ben lévő gombok is tűnjenek el
+    if (cart.length < 1) 
+    {
+        document.querySelector('.cart-footer').remove();
+    }
+}
+
+function addCartFooter()
+{
+    // beszúrás a div.cart html elem után
+    /* minden egyes új product hozzáadásakor újból létrejön a 2 gomb is, vizsgálni kell, 
+    létezik-e már a footer. Csak akkor szúrjuk be a 2 gombot, ha a .cart-footer null, még nem létezik(**) 
+     */
+    if( document.querySelector('.cart-footer') === null )
+    {
+        cartDom.insertAdjacentHTML('afterend', 
+        `<div class="cart-footer">
+        <button class="btn btn--danger" data-action="CLEAR_CART"> Clear Cart </button>
+        <button class="btn btn--primary" data-action="CHECKOUT"> Pay </button> 
+        </div>`
+        );
+    
+    /* event listenerek. Csak akkor fusson le a clearCart is, ha nincs footer, különben
+     null errort kapunk** */
+    document.querySelector('[data-action="CLEAR_CART').addEventListener('click', () => clearCart());
+    document.querySelector('[data-action="CHECKOUT').addEventListener('click', () => checkOut());
+    }
+
+    //**  document.querySelector('[data-action="CLEAR_CART').addEventListener('click', () => clearCart());
+    //  document.querySelector('[data-action="CHECKOUT').addEventListener('click', () => checkOut());
+}
+
+/* deleteAction-nél mindig lefilterezzük az aktuális tömböt, és ezt tároltuk storage-ban,
+ itt viszont minden esetben üres tömböt kapunk, mivel minden elemet töröltünk 
+ + localStorage-ból is törölni kell */
+function clearCart()
+{
+    document.querySelectorAll('.cart__item').forEach(cartItem => {
+        cartItem.classList.add('.cart__item__removed');
+        setTimeout( () => cartItem.remove(), 250);
     })
+
+    cart = [];
+    localStorage.removeItem('cart');
+
+    if (cart.length < 1) 
+    {
+        document.querySelector('.cart-footer').remove();
+    }
+
+    // gomb feliratok frissítése törlés után
+    addToCartButtons.forEach( button => {
+        button.innerText = 'Add to cart';
+        button.disabled = false;
+    })
+}
+
+function checkOut()
+{
+
+}
+
+/* kosárban lévő összeg tárolása. Meghívjuk domInsert-kor, és minden esetben amikor mentünk a
+localStorage-ba */
+function countCartTotal()
+{
+    let cartTotal = 0;
+
+    cart.forEach( cartItem => {
+        cartTotal += (cartItem.quantity * cartItem.price);
+    })
+
+    document.querySelector('[data-action="CHECKOUT"]').innerText = 'Pay $' + cartTotal;
+
+    console.log(cartTotal);
+}
+
+function saveCart()
+{
+    
 }
 
 /* ES5
