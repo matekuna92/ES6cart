@@ -55,9 +55,10 @@ addToCartButtons.forEach(button => {
             insertProductToDOM(product);     
 
             cart.push(product);
-            // tömb átalakítása stringgé, a setItem csak string formátumot fogad el
-            localStorage.setItem('cart', JSON.stringify(cart));
-            countCartTotal();
+            saveCart();
+
+            //  localStorage.setItem('cart', JSON.stringify(cart));
+            //  countCartTotal();
 
             handleActionButtons(button, product);
         }
@@ -119,9 +120,8 @@ function increaseAction(product, cartItem)
             // először megjelenik az érték, aztán növeli az értékét.
             // ++item.quantity esetén először növeli meg az értéket, aztán jelenik meg
             cartItem.querySelector('[data-action="DECREASE_QUANTITY"]').classList.remove('btn--danger');
-            // minden egyes változást is menteni kell a storage-ba
-            localStorage.setItem('cart', JSON.stringify(cart));
-            countCartTotal();
+            // minden egyes változást is menteni kell a storage-ba: ki lett szervezve function-be utólag
+            saveCart();
         }
     })
 }
@@ -134,8 +134,7 @@ function decreaseAction(product, cartItem, button)
             if( item.quantity > 1 )
             {
                 cartItem.querySelector('.cart__item__quantity').innerText = --item.quantity;
-                localStorage.setItem('cart', JSON.stringify(cart));
-                countCartTotal();
+                saveCart();
             }
             else
             {
@@ -158,8 +157,8 @@ function deleteAction(product, cartItem, button)
     // magában a cart tömmben viszont még mindig megmarad a termék
     console.log(cart);
     cart = cart.filter(cartItem => cartItem.name !== product.name);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    countCartTotal();
+    saveCart();
+
     console.log(cart);
 
     // gomb visszaállítása disabled állapotról
@@ -223,9 +222,36 @@ function clearCart()
     })
 }
 
+// https://developer.paypal.com/docs/paypal-payments-standard/integration-guide/formbasics/
 function checkOut()
 {
+    let paypalFormHTML = `
+    <form id="paypal-form" action="https://www.paypal.com/cgi-bin/webscr" method="post">
+      <input type="hidden" name="cmd" value="_cart">
+      <input type="hidden" name="upload" value="1">
+      <input type="hidden" name="business" value="adrian@webdev.tube">
+  `;
 
+  cart.forEach((cartItem, index) => {
+      // 0. index -> item_name_1, 1. index -> item_name_2, stb.
+    ++index;
+    paypalFormHTML += `
+      <input type="hidden" name="item_name_${index}" value="${cartItem.name}">
+      <input type="hidden" name="amount_${index}" value="${cartItem.price}">
+      <input type="hidden" name="quantity_${index}" value="${cartItem.quantity}">
+    `;
+  });
+
+  paypalFormHTML += `
+      <input type="submit" value="PayPal">
+    </form>
+    <div class="overlay"></div>
+  `;
+
+  // form hozzáfűzése a body tag-hez
+  document.querySelector('body').insertAdjacentHTML('beforeend', paypalFormHTML);
+  // form elküldése
+  document.getElementById('paypal-form').submit();
 }
 
 /* kosárban lévő összeg tárolása. Meghívjuk domInsert-kor, és minden esetben amikor mentünk a
@@ -245,7 +271,9 @@ function countCartTotal()
 
 function saveCart()
 {
-    
+    // tömb átalakítása stringgé, a setItem csak string formátumot fogad el
+    localStorage.setItem('cart', JSON.stringify(cart));
+    countCartTotal();
 }
 
 /* ES5
